@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 300px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    
+    .logo {
+      color: #0066cc;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    .search-section {
+      margin-bottom: 15px;
+    }
+    
+    .input-group {
+      margin-bottom: 10px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    
+    .button {
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    
+    .button:hover {
+      background-color: #0052a3;
+    }
+    
+    .button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .info {
+      background-color: #f0f8ff;
+      border: 1px solid #0066cc;
+      border-radius: 4px;
+      padding: 8px;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+    
+    .error {
+      background-color: #ffe6e6;
+      border: 1px solid #ff6666;
+      border-radius: 4px;
+      padding: 8px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: #cc0000;
+    }
+    
+    .instructions {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.4;
+    }
+    
+    .highlight {
+      background-color: #ffff99;
+      padding: 2px 4px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🏛️ TPL Search</div>
+  </div>
+  
+  <div class="search-section">
+    <div class="input-group">
+      <label for="searchInput">Search Toronto Public Library:</label>
+      <input type="text" id="searchInput" placeholder="Enter book title, author, or ISBN...">
+    </div>
+    
+    <button id="searchButton" class="button">Search TPL</button>
+    <button id="selectedTextButton" class="button" disabled>Search Selected Text</button>
+  </div>
+  
+  <div id="messageArea"></div>
+  
+  <div class="instructions">
+    <strong>How to use:</strong><br>
+    1. <span class="highlight">Highlight text</span> on any webpage<br>
+    2. Right-click → "Search on TPL"<br>
+    3. Or use this popup to search manually<br><br>
+    
+    <strong>Supports:</strong><br>
+    • Book titles and authors<br>
+    • ISBN-10 and ISBN-13 numbers<br>
+    • Any search terms with special characters
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
