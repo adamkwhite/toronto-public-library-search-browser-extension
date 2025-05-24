@@ -141,5 +141,11 @@
         sendResponse({ success: false, error: 'Unknown action' });
     }
   });
+
+  // Export functions for testing
+  if (typeof global !== 'undefined') {
+    global.validateSearchText = validateSearchText;
+    global.detectISBN = detectISBN;
+  }
   
 })();

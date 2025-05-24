@@ -36,7 +36,11 @@ describe('Popup Functionality (Fixed)', () => {
     
     // Define popup functions
     processSearchText = function(text) {
-      if (!text || typeof text !== 'string') {
+      if (text === null || text === undefined) {
+        throw new Error('Invalid search text');
+      }
+      
+      if (typeof text !== 'string') {
         throw new Error('Invalid search text');
       }
       
@@ -138,6 +142,7 @@ describe('Popup Functionality (Fixed)', () => {
 
     test('should handle input errors', () => {
       expect(() => processSearchText('')).toThrow('Search text is empty after processing');
+      expect(() => processSearchText('   ')).toThrow('Search text is empty after processing');
       expect(() => processSearchText(null)).toThrow('Invalid search text');
       expect(() => processSearchText(undefined)).toThrow('Invalid search text');
     });
