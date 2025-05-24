@@ -1,0 +1,23 @@
+{
+  "name": "tpl-search-extension",
+  "version": "1.0.0",
+  "description": "Chrome/Edge extension for searching Toronto Public Library",
+  "scripts": {
+    "test": "jest tests/unit/background-simple.test.js tests/integration/simple-integration.test.js",
+    "test:all": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest tests/unit/background-simple.test.js",
+    "test:integration": "jest tests/integration/simple-integration.test.js",
+    "lint": "eslint *.js tests/**/*.js",
+    "lint:fix": "eslint *.js tests/**/*.js --fix"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "eslint": "^8.57.0",
+    "@types/chrome": "^0.0.254",
+    "sinon": "^17.0.1",
+    "sinon-chrome": "^3.0.1"
+  }
+}
