@@ -196,4 +196,11 @@ document.addEventListener('DOMContentLoaded', function() {
     div.textContent = text;
     return div.innerHTML;
   }
+
+  // Export functions for testing
+  if (typeof global !== 'undefined') {
+    global.processSearchText = processSearchText;
+    global.truncateText = truncateText;
+    global.escapeHtml = escapeHtml;
+  }
 });

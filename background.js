@@ -86,3 +86,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ success: true });
   }
 });
+
+// Export functions for testing
+if (typeof global !== 'undefined') {
+  global.processSearchText = processSearchText;
+  global.isISBN = isISBN;
+}

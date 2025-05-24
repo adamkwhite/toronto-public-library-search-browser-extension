@@ -10,6 +10,7 @@
     "test:hybrid": "jest tests/unit/background-simple.test.js tests/unit/isbn-comprehensive.test.js tests/unit/background-chrome.test.js tests/unit/popup-fixed.test.js tests/integration/simple-integration.test.js",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:coverage-only": "jest tests/source-coverage/ --coverage",
     "lint": "eslint *.js tests/**/*.js",
     "lint:fix": "eslint *.js tests/**/*.js --fix"
   },

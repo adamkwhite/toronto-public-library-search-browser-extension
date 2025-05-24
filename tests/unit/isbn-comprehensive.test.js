@@ -51,13 +51,20 @@ describe('Comprehensive ISBN Detection', () => {
         return { isISBN: true, type: 'ISBN-13', cleaned };
       }
       
-      // Check for possible ISBN (9 digits exactly, not 10 or 13)
+      // Check for possible ISBN (9 digits exactly - missing check digit)
       if (/^[0-9]{9}$/i.test(cleaned) && cleaned.length === 9) {
         return { isISBN: true, type: 'Possible ISBN', cleaned };
       }
       
-      // Check for possible ISBN (11-12 digits, not exact ISBN formats)
+      // Check for possible ISBN (11-12 digits, with special logic for 12-digit numbers)
       if (/^[0-9]{11,12}$/i.test(cleaned) && cleaned.length >= 11 && cleaned.length <= 12) {
+        // For 12-digit numbers, reject if they look like malformed ISBN-13 attempts
+        if (cleaned.length === 12) {
+          // Reject numbers that start with common ISBN-like patterns but have wrong length
+          if (cleaned.startsWith('978') || cleaned.startsWith('979') || cleaned.startsWith('0')) {
+            return { isISBN: false };
+          }
+        }
         return { isISBN: true, type: 'Possible ISBN', cleaned };
       }
       
