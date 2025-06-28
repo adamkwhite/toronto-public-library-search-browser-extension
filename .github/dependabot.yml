@@ -1,0 +1,56 @@
+# GitHub Dependabot configuration for tpl-search-extension
+# Chrome extension with npm dependencies
+
+version: 2
+updates:
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "adamkwhite"
+    assignees:
+      - "adamkwhite"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "javascript"
+    # Group development dependencies
+    groups:
+      dev-dependencies:
+        patterns:
+          - "@types/*"
+          - "@testing-library/*"
+          - "eslint*"
+          - "typescript*"
+          - "vitest*"
+          - "jest*"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@types/*"
+          - "@testing-library/*"
+          - "eslint*"
+          - "typescript*"
+          - "vitest*"
+          - "jest*"
+        update-types:
+          - "patch"
+    # Security updates always allowed
+    allow:
+      - dependency-type: "all"
+    ignore:
+      # Be careful with major React updates
+      - dependency-name: "react*"
+        update-types: ["version-update:semver-major"]
