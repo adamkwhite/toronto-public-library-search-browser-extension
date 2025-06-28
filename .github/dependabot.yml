@@ -1,5 +1,5 @@
 # GitHub Dependabot configuration for tpl-search-extension
-# Chrome extension with npm dependencies
+# Chrome extension for Toronto Public Library search
 
 version: 2
 updates:
@@ -21,36 +21,33 @@ updates:
       include: "scope"
     labels:
       - "dependencies"
+      - "chrome-extension"
       - "javascript"
-    # Group development dependencies
+    # Group development and testing dependencies
     groups:
-      dev-dependencies:
+      testing-dependencies:
         patterns:
-          - "@types/*"
           - "@testing-library/*"
-          - "eslint*"
-          - "typescript*"
-          - "vitest*"
           - "jest*"
+          - "vitest*"
+          - "sinon*"
+          - "@types/*"
         update-types:
           - "minor"
           - "patch"
-      production-dependencies:
+      build-tools:
         patterns:
-          - "*"
-        exclude-patterns:
-          - "@types/*"
-          - "@testing-library/*"
           - "eslint*"
           - "typescript*"
-          - "vitest*"
-          - "jest*"
+          - "vite*"
+          - "@vitejs/*"
         update-types:
+          - "minor"
           - "patch"
     # Security updates always allowed
     allow:
       - dependency-type: "all"
     ignore:
-      # Be careful with major React updates
-      - dependency-name: "react*"
+      # Be careful with major TypeScript updates
+      - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
