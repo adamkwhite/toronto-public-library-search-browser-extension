@@ -1,4 +1,4 @@
-# Toronto Public Library (TPLD) Browser Extension
+# Toronto Public Library (TPL) Browser Extension
 
 A Chrome/Edge browser extension that allows users to quickly search the Toronto Public Library (TPL) for highlighted text, book titles, authors, or ISBN numbers.
 
