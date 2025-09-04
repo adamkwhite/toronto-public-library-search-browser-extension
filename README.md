@@ -1,6 +1,6 @@
 # Toronto Public Library (TPL) Browser Extension
 
-A Chrome/Edge browser extension that allows users to quickly search the Toronto Public Library (TPL) for highlighted text, book titles, authors, or ISBN numbers.
+A Chrome/Edge browser extension that allows users to select text and quickly search for books at the Toronto Public Library (TPL) by title, authors, or ISBN number.
 
 ## Features
 
@@ -16,7 +16,7 @@ A Chrome/Edge browser extension that allows users to quickly search the Toronto 
 
 1. Clone or download this repository
 2. Open Chrome/Edge and go to `chrome://extensions/` (Chrome) or `edge://extensions/` (Edge)
-3. Enable "Developer mode" in the top right corner
+3. Enable "Developer mode" in the appropriate spot for your browser
 4. Click "Load unpacked" and select the extension directory
 5. The extension should now appear in your extensions list
 
