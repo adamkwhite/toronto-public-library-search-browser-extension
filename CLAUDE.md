@@ -111,6 +111,11 @@ toronto-public-library-search-browser-extension/
 - Uses squash merge strategy for clean commit history
 - Successfully processed 10 pending Dependabot PRs
 
+### Repository Maintenance (Nov 24, 2025)
+- Added `.claude/` directory to `.gitignore`
+- Prevents committing Claude Code local settings
+- Keeps repository clean of user-specific development tool configuration
+
 ### Dependencies Updated
 - glob: 10.4.5 → 10.5.0
 - baseline-browser-mapping: 2.8.29 → 2.8.31
