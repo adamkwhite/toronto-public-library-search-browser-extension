@@ -7,7 +7,7 @@ Comprehensive testing framework for the Toronto Public Library Search browser ex
 This test suite provides thorough coverage of all extension functionality including:
 
 - **Unit Tests**: Individual function and component testing
-- **Integration Tests**: End-to-end workflow testing  
+- **Integration Tests**: End-to-end workflow testing
 - **Mocks**: Chrome extension APIs and browser environment
 - **Fixtures**: Test data and realistic scenarios
 
@@ -33,16 +33,19 @@ tests/
 ## Running Tests
 
 ### Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### Run All Tests
+
 ```bash
 npm test
 ```
 
 ### Run Specific Test Suites
+
 ```bash
 # Unit tests only
 npm run test:unit
@@ -58,6 +61,7 @@ npm run test:coverage
 ```
 
 ### Linting
+
 ```bash
 # Check code style
 npm run lint
@@ -71,6 +75,7 @@ npm run lint:fix
 ### Unit Tests
 
 #### Background Script Tests (`background.test.js`)
+
 - Context menu creation and handling
 - Text processing and validation
 - ISBN detection and cleaning
@@ -78,12 +83,14 @@ npm run lint:fix
 - Chrome API interaction
 
 #### Content Script Tests (`content.test.js`)
+
 - Text selection handling
 - Message passing with background script
 - Input validation and sanitization
 - ISBN detection in content context
 
 #### Popup Tests (`popup.test.js`)
+
 - User interface interactions
 - Manual search functionality
 - Selected text detection
@@ -91,6 +98,7 @@ npm run lint:fix
 - URL encoding for special characters
 
 #### ISBN Tests (`isbn.test.js`)
+
 - Comprehensive ISBN-10 validation
 - Comprehensive ISBN-13 validation
 - Edge cases and malformed inputs
@@ -100,6 +108,7 @@ npm run lint:fix
 ### Integration Tests
 
 #### Extension Workflow Tests (`extension.test.js`)
+
 - Complete user journeys (select → right-click → search)
 - Context menu to TPL search flow
 - Popup to search flow
@@ -109,6 +118,7 @@ npm run lint:fix
 ## Test Data
 
 ### Test Fixtures (`fixtures/test-data.js`)
+
 - **Valid ISBNs**: Real and synthetic ISBN-10/13 examples
 - **Invalid ISBNs**: Edge cases and malformed inputs
 - **Search Terms**: Book titles, authors, special characters
@@ -117,6 +127,7 @@ npm run lint:fix
 - **URL Encoding**: Special character handling test cases
 
 ### Example Test Data
+
 ```javascript
 // Valid ISBN examples
 validISBNs: {
@@ -140,6 +151,7 @@ realWorldISBNs: [
 ## Chrome API Mocking
 
 ### Mock Implementation (`mocks/chrome-api.js`)
+
 The test suite includes comprehensive mocks for Chrome extension APIs:
 
 - **chrome.contextMenus**: Menu creation, updates, click simulation
@@ -148,6 +160,7 @@ The test suite includes comprehensive mocks for Chrome extension APIs:
 - **chrome.storage**: Local and sync storage simulation
 
 ### Usage Example
+
 ```javascript
 // Simulate context menu click
 chromeTestUtils.simulateContextMenuClick('Selected text');
@@ -170,11 +183,12 @@ chrome.tabs.sendMessage.yields({
 The test suite aims for comprehensive coverage:
 
 - **Lines**: 80%+ coverage
-- **Functions**: 80%+ coverage  
+- **Functions**: 80%+ coverage
 - **Branches**: 80%+ coverage
 - **Statements**: 80%+ coverage
 
 ### Coverage Reports
+
 ```bash
 # Generate detailed coverage report
 npm run test:coverage
@@ -186,6 +200,7 @@ open coverage/lcov-report/index.html
 ## Test Scenarios
 
 ### Context Menu Scenarios
+
 1. **Basic book title search**: "The Great Gatsby" → TPL search
 2. **Author search**: "Margaret Atwood" → TPL search
 3. **ISBN search**: "978-0-123-45678-6" → Cleaned ISBN search
@@ -193,12 +208,14 @@ open coverage/lcov-report/index.html
 5. **Empty selections**: Graceful handling of no-text scenarios
 
 ### Popup Scenarios
+
 1. **Manual search**: User types search term
 2. **Selected text search**: Use highlighted text from page
 3. **Error handling**: Invalid input, network errors
 4. **ISBN detection**: Automatic ISBN formatting
 
 ### Error Scenarios
+
 1. **Network failures**: Tab creation errors
 2. **Invalid selections**: Empty, whitespace-only text
 3. **Extension errors**: Runtime context issues
@@ -214,6 +231,7 @@ The test suite is designed for CI/CD integration:
 - **Timeouts**: Reasonable test execution limits
 
 ### CI Commands
+
 ```bash
 # Run tests with coverage in CI
 npm run test:coverage
@@ -228,6 +246,7 @@ npm run test:coverage && npm run lint
 ## Writing New Tests
 
 ### Test Structure
+
 ```javascript
 describe('Component Name', () => {
   beforeEach(() => {
@@ -238,10 +257,10 @@ describe('Component Name', () => {
     test('should handle specific scenario', () => {
       // Arrange
       const input = 'test input';
-      
+
       // Act
       const result = functionUnderTest(input);
-      
+
       // Assert
       expect(result).toBe('expected output');
     });
@@ -250,6 +269,7 @@ describe('Component Name', () => {
 ```
 
 ### Best Practices
+
 1. **Descriptive test names**: Clearly state what is being tested
 2. **Arrange-Act-Assert**: Structure tests clearly
 3. **Isolated tests**: Each test should be independent
@@ -260,12 +280,14 @@ describe('Component Name', () => {
 ## Debugging Tests
 
 ### Common Issues
+
 1. **Chrome API not mocked**: Ensure `tests/setup.js` is loaded
 2. **Async handling**: Use proper async/await or done callbacks
 3. **Mock state**: Reset mocks between tests with `beforeEach`
 4. **Timeout issues**: Increase timeout for integration tests
 
 ### Debug Commands
+
 ```bash
 # Run specific test file
 npm test -- background.test.js

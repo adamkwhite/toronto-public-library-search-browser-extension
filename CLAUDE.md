@@ -79,6 +79,7 @@ npm run lint
 ## Architecture
 
 ### File Structure
+
 ```
 toronto-public-library-search-browser-extension/
 ├── .github/workflows/        # GitHub Actions workflows
@@ -97,6 +98,7 @@ toronto-public-library-search-browser-extension/
 ```
 
 ### Key Components
+
 - **Context Menu**: Right-click "Search on TPL" functionality
 - **Popup Interface**: Manual search via extension icon
 - **ISBN Detection**: Auto-formats ISBN-10/ISBN-13 numbers
@@ -105,6 +107,7 @@ toronto-public-library-search-browser-extension/
 ## Recent Changes (Nov 2024)
 
 ### Dependabot Auto-Merge Workflow (Nov 24, 2025)
+
 - Added GitHub Actions workflow for automatic Dependabot PR merging
 - Auto-merges patch and minor version updates only
 - Major updates require manual review
@@ -112,11 +115,13 @@ toronto-public-library-search-browser-extension/
 - Successfully processed 10 pending Dependabot PRs
 
 ### Repository Maintenance (Nov 24, 2025)
+
 - Added `.claude/` directory to `.gitignore`
 - Prevents committing Claude Code local settings
 - Keeps repository clean of user-specific development tool configuration
 
 ### Dependencies Updated
+
 - glob: 10.4.5 → 10.5.0
 - baseline-browser-mapping: 2.8.29 → 2.8.31
 - @eslint-community/regexpp: 4.12.1 → 4.12.2
@@ -138,9 +143,11 @@ toronto-public-library-search-browser-extension/
 ## Dependencies
 
 ### External Services
+
 - Toronto Public Library catalog search API (via URL construction)
 
 ### Development Dependencies
+
 - Jest (testing framework)
 - ESLint (linting)
 - Various ESLint plugins and configs
