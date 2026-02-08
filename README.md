@@ -51,7 +51,7 @@ A Chrome/Edge browser extension that allows users to select text and quickly sea
 
 - **Book Titles**: "The Great Gatsby", "To Kill a Mockingbird"
 - **Author Names**: "Margaret Atwood", "Stephen King"
-- **ISBN Numbers**: 
+- **ISBN Numbers**:
   - ISBN-10: 0123456789, 0-123-45678-9
   - ISBN-13: 9780123456786, 978-0-123-45678-6
 - **General Search Terms**: Any text with special characters

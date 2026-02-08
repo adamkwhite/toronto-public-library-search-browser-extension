@@ -1,0 +1,73 @@
+# Pre-commit hooks configuration for JavaScript/Node.js browser extension
+# Automatically runs code quality checks before each commit
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        name: Remove trailing whitespace
+        exclude: ^(node_modules/|coverage/|\.min\.)
+      - id: end-of-file-fixer
+        name: Ensure files end with newline
+        exclude: ^(node_modules/|coverage/)
+      - id: check-yaml
+        name: Validate YAML files
+      - id: check-json
+        name: Validate JSON files
+        exclude: ^(node_modules/|coverage/)
+      - id: check-added-large-files
+        name: Prevent large files (>500KB)
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+        name: Check for merge conflict markers
+      - id: debug-statements
+        name: Check for debugger statements
+        exclude: ^(debug-isbn\.js|tests/|node_modules/|coverage/)
+
+  # Package.json validation
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-json
+        name: Validate package.json
+        files: ^package\.json$
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.47.0
+    hooks:
+      - id: markdownlint
+        name: Lint Markdown files
+        args: ['--fix']
+        exclude: ^(node_modules/|coverage/)
+
+  # Commit message validation (conventional commits)
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.3.0
+    hooks:
+      - id: conventional-pre-commit
+        name: Validate commit message format
+        stages: [commit-msg]
+        args: ['--strict']
+
+# Configuration options
+default_language_version:
+  node: system  # Use system Node.js version
+
+# Skip hooks for specific commits
+# Usage: SKIP=eslint git commit -m "..."
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
