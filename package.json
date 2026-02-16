@@ -17,7 +17,7 @@
   "devDependencies": {
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
-    "eslint": "^9.39.2",
+    "eslint": "^10.0.0",
     "@types/chrome": "^0.1.36",
     "sinon": "^21.0.1",
     "sinon-chrome": "^3.0.1"
