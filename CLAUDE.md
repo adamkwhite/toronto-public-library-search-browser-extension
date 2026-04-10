@@ -104,7 +104,16 @@ toronto-public-library-search-browser-extension/
 - **ISBN Detection**: Auto-formats ISBN-10/ISBN-13 numbers
 - **Input Validation**: XSS protection and special character handling
 
-## Recent Changes (Nov 2024)
+## Recent Changes
+
+### Dependabot Auto-Merge Fixes (Apr 10, 2026)
+
+Auto-merge workflow had two latent bugs exposed when Dependabot created fresh PRs:
+
+- **#206**: Removed `--auto` flag from `gh pr merge`. The flag requires required status checks in branch protection, but this repo has none, causing "Pull request is in unstable status" errors. Also bumped `dependabot/fetch-metadata` v1→v2 (Node 20 deprecation).
+- **#216**: Removed the `gh pr review --approve` step that #206 introduced. `GITHUB_TOKEN` is not permitted to approve PRs by default, and the approval is unnecessary anyway — `main` has no branch protection, so `gh pr merge --squash` succeeds without any prior review.
+- Verified end-to-end: 8/9 concurrent Dependabot PRs (#207–#215) auto-merged by `app/github-actions` without human intervention; 1 auto-closed as superseded.
+- Gotcha: when many PRs target the same base concurrently, one will hit `"Base branch was modified"` — a single `@dependabot rebase` clears it.
 
 ### Dependabot Auto-Merge Workflow (Nov 24, 2025)
 
