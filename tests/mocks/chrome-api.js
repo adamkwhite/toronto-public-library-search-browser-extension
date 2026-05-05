@@ -24,16 +24,16 @@ class MockContextMenus {
     if (!createProperties.id || !createProperties.title) {
       throw new Error('Missing required properties for context menu');
     }
-    
+
     this.menus.set(createProperties.id, {
       ...createProperties,
       enabled: true
     });
-    
+
     if (callback) {
       callback();
     }
-    
+
     return createProperties.id;
   }
 
@@ -41,10 +41,10 @@ class MockContextMenus {
     if (!this.menus.has(menuItemId)) {
       throw new Error(`Context menu item ${menuItemId} not found`);
     }
-    
+
     const existing = this.menus.get(menuItemId);
     this.menus.set(menuItemId, { ...existing, ...updateProperties });
-    
+
     if (callback) {
       callback();
     }
@@ -77,12 +77,12 @@ class MockContextMenus {
     if (!this.menus.has(menuItemId)) {
       return false;
     }
-    
+
     const clickInfo = {
       menuItemId,
       ...info
     };
-    
+
     this.onClicked.trigger(clickInfo, tab);
     return true;
   }
@@ -95,7 +95,7 @@ class MockTabs {
     this.onCreated = new MockEventHandler();
     this.onUpdated = new MockEventHandler();
     this.onRemoved = new MockEventHandler();
-    
+
     // Create a default active tab
     this.create({ url: 'https://example.com', active: true });
   }
@@ -114,42 +114,42 @@ class MockTabs {
       selected: createProperties.active !== false,
       status: 'loading'
     };
-    
+
     this.tabs.set(tab.id, tab);
     this.onCreated.trigger(tab);
-    
+
     // Simulate tab loading completion
     setTimeout(() => {
       tab.status = 'complete';
       this.onUpdated.trigger(tab.id, { status: 'complete' }, tab);
     }, 10);
-    
+
     if (callback) {
       callback(tab);
     }
-    
+
     return tab;
   }
 
   query(queryInfo, callback) {
     let results = Array.from(this.tabs.values());
-    
+
     if (queryInfo.active !== undefined) {
       results = results.filter(tab => tab.active === queryInfo.active);
     }
-    
+
     if (queryInfo.currentWindow !== undefined) {
       results = results.filter(tab => tab.windowId === 1); // Assume window 1 is current
     }
-    
+
     if (queryInfo.url !== undefined) {
       results = results.filter(tab => tab.url.includes(queryInfo.url));
     }
-    
+
     if (callback) {
       callback(results);
     }
-    
+
     return results;
   }
 
@@ -166,28 +166,28 @@ class MockTabs {
     if (!tab) {
       throw new Error(`Tab ${tabId} not found`);
     }
-    
+
     const updatedTab = { ...tab, ...updateProperties };
     this.tabs.set(tabId, updatedTab);
     this.onUpdated.trigger(tabId, updateProperties, updatedTab);
-    
+
     if (callback) {
       callback(updatedTab);
     }
-    
+
     return updatedTab;
   }
 
   remove(tabIds, callback) {
     const ids = Array.isArray(tabIds) ? tabIds : [tabIds];
-    
+
     ids.forEach(id => {
       if (this.tabs.has(id)) {
         this.tabs.delete(id);
         this.onRemoved.trigger(id, { windowId: 1, isWindowClosing: false });
       }
     });
-    
+
     if (callback) {
       callback();
     }
@@ -199,7 +199,7 @@ class MockTabs {
       callback = options;
       options = {};
     }
-    
+
     const tab = this.tabs.get(tabId);
     if (!tab) {
       if (callback) {
@@ -207,11 +207,11 @@ class MockTabs {
       }
       return;
     }
-    
+
     // Simulate message sending with various responses based on message type
     setTimeout(() => {
       let response;
-      
+
       switch (message.action) {
         case 'getSelectedText':
           response = {
@@ -226,7 +226,7 @@ class MockTabs {
         default:
           response = { success: false, error: 'Unknown action' };
       }
-      
+
       if (callback) {
         callback(response);
       }
@@ -265,7 +265,7 @@ class MockRuntime {
       callback = options;
       options = {};
     }
-    
+
     // Simulate async message handling
     setTimeout(() => {
       this.onMessage.trigger(message, { id: this.id }, callback || (() => {}));
@@ -312,13 +312,13 @@ class MockStorageArea {
   get(keys, callback) {
     const result = {};
     const keyArray = Array.isArray(keys) ? keys : [keys];
-    
+
     keyArray.forEach(key => {
       if (this.data.has(key)) {
         result[key] = this.data.get(key);
       }
     });
-    
+
     if (callback) {
       callback(result);
     }
@@ -327,15 +327,15 @@ class MockStorageArea {
 
   set(items, callback) {
     const changes = {};
-    
+
     Object.keys(items).forEach(key => {
       const oldValue = this.data.get(key);
       this.data.set(key, items[key]);
       changes[key] = { oldValue, newValue: items[key] };
     });
-    
+
     this.onChanged.trigger(changes, 'local');
-    
+
     if (callback) {
       callback();
     }
@@ -344,16 +344,16 @@ class MockStorageArea {
   remove(keys, callback) {
     const keyArray = Array.isArray(keys) ? keys : [keys];
     const changes = {};
-    
+
     keyArray.forEach(key => {
       if (this.data.has(key)) {
         changes[key] = { oldValue: this.data.get(key) };
         this.data.delete(key);
       }
     });
-    
+
     this.onChanged.trigger(changes, 'local');
-    
+
     if (callback) {
       callback();
     }
@@ -364,10 +364,10 @@ class MockStorageArea {
     this.data.forEach((value, key) => {
       changes[key] = { oldValue: value };
     });
-    
+
     this.data.clear();
     this.onChanged.trigger(changes, 'local');
-    
+
     if (callback) {
       callback();
     }
@@ -436,7 +436,7 @@ export const chromeTestUtils = {
   // Simulate tab creation with TPL search
   simulateTPLSearch(searchTerm) {
     const encodedTerm = encodeURIComponent(searchTerm);
-    const url = `https://www.torontopubliclibrary.ca/search.jsp?Ntt=${encodedTerm}`;
+    const url = `https://tpl.bibliocommons.com/v2/search?query=${encodedTerm}`;
     return mockChrome.tabs.create({ url, active: true });
   },
 
