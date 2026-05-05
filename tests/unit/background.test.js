@@ -3,33 +3,33 @@
 
 describe('Background Script', () => {
   let backgroundScript;
-  
+
   beforeEach(() => {
     // Load the background script functions
     // Since we can't directly import, we'll test the functions by copying them
     global.processSearchText = function(text) {
       let processed = text.replace(/\s+/g, ' ').trim();
-      
+
       if (isISBN(processed)) {
         processed = processed.replace(/[^0-9X]/gi, '');
         return processed;
       }
-      
+
       if (!processed || processed.length === 0) {
         console.warn('TPL Search: Empty search text after processing');
         return text.trim();
       }
-      
+
       if (processed.length > 200) {
         processed = processed.substring(0, 200).trim();
       }
-      
+
       return processed;
     };
-    
+
     global.isISBN = function(text) {
       const cleaned = text.replace(/[^0-9X]/gi, '');
-      return /^[0-9]{9}[0-9X]$/i.test(cleaned) || 
+      return /^[0-9]{9}[0-9X]$/i.test(cleaned) ||
              /^97[89][0-9]{10}$/i.test(cleaned);
     };
   });
@@ -105,7 +105,7 @@ describe('Background Script', () => {
       // Simulate chrome.runtime.onInstalled
       const callback = chrome.runtime.onInstalled.addListener.getCall(0).args[0];
       callback();
-      
+
       expect(chrome.contextMenus.create.calledOnce).toBe(true);
       expect(chrome.contextMenus.create.calledWith({
         id: "searchTPL",
@@ -120,14 +120,14 @@ describe('Background Script', () => {
         selectionText: "The Great Gatsby"
       };
       const mockTab = { id: 1 };
-      
+
       // Simulate context menu click
       const callback = chrome.contextMenus.onClicked.addListener.getCall(0).args[0];
       callback(mockInfo, mockTab);
-      
+
       expect(chrome.tabs.create.calledOnce).toBe(true);
       const createCall = chrome.tabs.create.getCall(0);
-      expect(createCall.args[0].url).toContain('https://www.torontopubliclibrary.ca/search.jsp?Ntt=');
+      expect(createCall.args[0].url).toContain('https://tpl.bibliocommons.com/v2/search?query=');
       expect(createCall.args[0].active).toBe(true);
     });
 
@@ -137,10 +137,10 @@ describe('Background Script', () => {
         selectionText: ""
       };
       const mockTab = { id: 1 };
-      
+
       const callback = chrome.contextMenus.onClicked.addListener.getCall(0).args[0];
       callback(mockInfo, mockTab);
-      
+
       expect(chrome.tabs.create.called).toBe(false);
     });
 
@@ -150,10 +150,10 @@ describe('Background Script', () => {
         selectionText: "Some text"
       };
       const mockTab = { id: 1 };
-      
+
       const callback = chrome.contextMenus.onClicked.addListener.getCall(0).args[0];
       callback(mockInfo, mockTab);
-      
+
       expect(chrome.tabs.create.called).toBe(false);
     });
   });
@@ -166,7 +166,7 @@ describe('Background Script', () => {
         { input: 'Book "Title"', expected: 'Book%20%22Title%22' },
         { input: 'Test with åéîøü', expected: 'Test%20with%20%C3%A5%C3%A9%C3%AE%C3%B8%C3%BC' }
       ];
-      
+
       testCases.forEach(({ input, expected }) => {
         const encoded = encodeURIComponent(processSearchText(input));
         expect(encoded).toBe(expected);
@@ -174,11 +174,11 @@ describe('Background Script', () => {
     });
 
     test('should create proper TPL URLs', () => {
-      const baseUrl = 'https://www.torontopubliclibrary.ca/search.jsp?Ntt=';
+      const baseUrl = 'https://tpl.bibliocommons.com/v2/search?query=';
       const searchTerm = 'Test Book';
       const expectedUrl = baseUrl + encodeURIComponent(searchTerm);
-      
-      expect(expectedUrl).toBe('https://www.torontopubliclibrary.ca/search.jsp?Ntt=Test%20Book');
+
+      expect(expectedUrl).toBe('https://tpl.bibliocommons.com/v2/search?query=Test%20Book');
     });
   });
 });

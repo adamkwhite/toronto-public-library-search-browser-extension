@@ -3,31 +3,31 @@
 
 describe('Background Script Core Functions', () => {
   let processSearchText, isISBN;
-  
+
   beforeEach(() => {
     // Define core functions for testing
     processSearchText = function(text) {
       let processed = text.replace(/\s+/g, ' ').trim();
-      
+
       if (isISBN(processed)) {
         processed = processed.replace(/[^0-9X]/gi, '');
         return processed;
       }
-      
+
       if (!processed || processed.length === 0) {
         return text.trim();
       }
-      
+
       if (processed.length > 200) {
         processed = processed.substring(0, 200).trim();
       }
-      
+
       return processed;
     };
-    
+
     isISBN = function(text) {
       const cleaned = text.replace(/[^0-9X]/gi, '');
-      return /^[0-9]{9}[0-9X]$/i.test(cleaned) || 
+      return /^[0-9]{9}[0-9X]$/i.test(cleaned) ||
              /^97[89][0-9]{10}$/i.test(cleaned);
     };
   });
@@ -95,7 +95,7 @@ describe('Background Script Core Functions', () => {
         { input: 'Author: Smith & Jones', expected: 'Author%3A%20Smith%20%26%20Jones' },
         { input: 'Book "Title"', expected: 'Book%20%22Title%22' }
       ];
-      
+
       testCases.forEach(({ input, expected }) => {
         const processed = processSearchText(input);
         const encoded = encodeURIComponent(processed);
@@ -107,16 +107,16 @@ describe('Background Script Core Functions', () => {
       const searchTerm = 'Test Book';
       const processed = processSearchText(searchTerm);
       const encodedTerm = encodeURIComponent(processed);
-      const expectedUrl = `https://www.torontopubliclibrary.ca/search.jsp?Ntt=${encodedTerm}`;
-      
-      expect(expectedUrl).toBe('https://www.torontopubliclibrary.ca/search.jsp?Ntt=Test%20Book');
+      const expectedUrl = `https://tpl.bibliocommons.com/v2/search?query=${encodedTerm}`;
+
+      expect(expectedUrl).toBe('https://tpl.bibliocommons.com/v2/search?query=Test%20Book');
     });
 
     test('should handle special characters in URLs', () => {
       const specialText = 'Book title: "Test & More"';
       const processed = processSearchText(specialText);
       const encoded = encodeURIComponent(processed);
-      
+
       expect(encoded).toContain('%22'); // Quote
       expect(encoded).toContain('%26'); // Ampersand
       expect(encoded).toContain('%3A'); // Colon

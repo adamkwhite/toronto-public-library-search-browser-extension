@@ -4,27 +4,27 @@
 describe('Popup Script', () => {
   let mockDocument, mockWindow, mockChrome;
   let searchInput, searchButton, selectedTextButton, messageArea;
-  
+
   beforeEach(() => {
     // Mock DOM elements
-    searchInput = { 
-      value: '', 
+    searchInput = {
+      value: '',
       addEventListener: jest.fn(),
       focus: jest.fn()
     };
-    searchButton = { 
+    searchButton = {
       addEventListener: jest.fn(),
       disabled: false
     };
-    selectedTextButton = { 
+    selectedTextButton = {
       addEventListener: jest.fn(),
       disabled: true,
       textContent: 'Search Selected Text'
     };
-    messageArea = { 
+    messageArea = {
       innerHTML: ''
     };
-    
+
     // Mock document methods
     mockDocument = {
       addEventListener: jest.fn(),
@@ -39,51 +39,51 @@ describe('Popup Script', () => {
       }),
       createElement: jest.fn(() => ({ textContent: '', innerHTML: '' }))
     };
-    
+
     mockWindow = {
       close: jest.fn()
     };
-    
+
     global.document = mockDocument;
     global.window = mockWindow;
-    
+
     // Copy popup functions for testing
     global.processSearchText = function(text) {
       if (!text || typeof text !== 'string') {
         throw new Error('Invalid search text');
       }
-      
+
       let processed = text.replace(/\s+/g, ' ').trim();
-      
+
       if (processed.length === 0) {
         throw new Error('Search text is empty after processing');
       }
-      
+
       if (isISBN(processed)) {
         processed = processed.replace(/[^0-9X]/gi, '');
         return processed;
       }
-      
+
       if (processed.length > 200) {
         processed = processed.substring(0, 200).trim();
       }
-      
+
       return processed;
     };
-    
+
     global.isISBN = function(text) {
       const cleaned = text.replace(/[^0-9X]/gi, '');
-      return /^[0-9]{9}[0-9X]?$/i.test(cleaned) || 
+      return /^[0-9]{9}[0-9X]?$/i.test(cleaned) ||
              /^97[89][0-9]{10}$/i.test(cleaned);
     };
-    
+
     global.truncateText = function(text, maxLength) {
       if (text.length <= maxLength) {
         return text;
       }
       return text.substring(0, maxLength - 3) + '...';
     };
-    
+
     global.escapeHtml = function(text) {
       const div = document.createElement('div');
       div.textContent = text;
@@ -127,26 +127,26 @@ describe('Popup Script', () => {
       const testCases = [
         {
           input: 'The Great Gatsby',
-          expected: 'https://www.torontopubliclibrary.ca/search.jsp?Ntt=The%20Great%20Gatsby'
+          expected: 'https://tpl.bibliocommons.com/v2/search?query=The%20Great%20Gatsby'
         },
         {
           input: 'Author: Smith & Jones',
-          expected: 'https://www.torontopubliclibrary.ca/search.jsp?Ntt=Author%3A%20Smith%20%26%20Jones'
+          expected: 'https://tpl.bibliocommons.com/v2/search?query=Author%3A%20Smith%20%26%20Jones'
         },
         {
           input: 'Book "Title" with quotes',
-          expected: 'https://www.torontopubliclibrary.ca/search.jsp?Ntt=Book%20%22Title%22%20with%20quotes'
+          expected: 'https://tpl.bibliocommons.com/v2/search?query=Book%20%22Title%22%20with%20quotes'
         },
         {
           input: '978-0-123-45678-6',
-          expected: 'https://www.torontopubliclibrary.ca/search.jsp?Ntt=9780123456786'
+          expected: 'https://tpl.bibliocommons.com/v2/search?query=9780123456786'
         }
       ];
-      
+
       testCases.forEach(({ input, expected }) => {
         const processed = processSearchText(input);
         const encoded = encodeURIComponent(processed);
-        const url = `https://www.torontopubliclibrary.ca/search.jsp?Ntt=${encoded}`;
+        const url = `https://tpl.bibliocommons.com/v2/search?query=${encoded}`;
         expect(url).toBe(expected);
       });
     });
@@ -160,7 +160,7 @@ describe('Popup Script', () => {
         { char: '+', encoded: '%2B' },
         { char: ' ', encoded: '%20' }
       ];
-      
+
       specialChars.forEach(({ char, encoded }) => {
         const text = `test${char}text`;
         const processed = processSearchText(text);
@@ -190,13 +190,13 @@ describe('Popup Script', () => {
         textContent: '',
         innerHTML: ''
       };
-      
+
       document.createElement.mockReturnValue(mockDiv);
-      
+
       const maliciousInput = '<script>alert("xss")</script>';
       mockDiv.textContent = maliciousInput;
       mockDiv.innerHTML = '&lt;script&gt;alert("xss")&lt;/script&gt;';
-      
+
       const result = escapeHtml(maliciousInput);
       expect(result).toBe('&lt;script&gt;alert("xss")&lt;/script&gt;');
     });
@@ -205,13 +205,13 @@ describe('Popup Script', () => {
   describe('Chrome Extension Integration', () => {
     test('should query active tabs correctly', () => {
       chrome.tabs.query.yields([{ id: 1, url: 'https://example.com' }]);
-      
+
       // Simulate tab query
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         expect(tabs).toHaveLength(1);
         expect(tabs[0].id).toBe(1);
       });
-      
+
       expect(chrome.tabs.query.calledWith({ active: true, currentWindow: true })).toBe(true);
     });
 
@@ -221,33 +221,33 @@ describe('Popup Script', () => {
         text: 'Selected text',
         isbn: { isISBN: false }
       };
-      
+
       chrome.tabs.sendMessage.yields(mockResponse);
-      
+
       chrome.tabs.sendMessage(1, { action: 'getSelectedText' }, (response) => {
         expect(response.success).toBe(true);
         expect(response.text).toBe('Selected text');
       });
-      
+
       expect(chrome.tabs.sendMessage.calledWith(1, { action: 'getSelectedText' })).toBe(true);
     });
 
     test('should create new tabs with correct URL', () => {
       const searchText = 'Test Book';
-      const expectedUrl = `https://www.torontopubliclibrary.ca/search.jsp?Ntt=${encodeURIComponent(searchText)}`;
-      
+      const expectedUrl = `https://tpl.bibliocommons.com/v2/search?query=${encodeURIComponent(searchText)}`;
+
       chrome.tabs.create.yields({ id: 2, url: expectedUrl });
-      
+
       chrome.tabs.create({ url: expectedUrl, active: true }, (tab) => {
         expect(tab.url).toBe(expectedUrl);
       });
-      
+
       expect(chrome.tabs.create.calledWith({ url: expectedUrl, active: true })).toBe(true);
     });
 
     test('should handle chrome runtime errors gracefully', () => {
       chrome.runtime.lastError = { message: 'Extension context invalidated.' };
-      
+
       chrome.tabs.sendMessage(1, { action: 'getSelectedText' }, (response) => {
         // Should handle the error gracefully without throwing
         expect(chrome.runtime.lastError).toBeDefined();
@@ -258,7 +258,7 @@ describe('Popup Script', () => {
   describe('Error Handling', () => {
     test('should handle empty search input', () => {
       searchInput.value = '';
-      
+
       // Simulate manual search with empty input
       expect(() => {
         const searchText = searchInput.value.trim();
@@ -270,7 +270,7 @@ describe('Popup Script', () => {
 
     test('should handle search processing errors', () => {
       const invalidInputs = [null, undefined, '', '   '];
-      
+
       invalidInputs.forEach(input => {
         expect(() => processSearchText(input)).toThrow();
       });
@@ -279,7 +279,7 @@ describe('Popup Script', () => {
     test('should handle network/extension errors', () => {
       // Simulate network error
       chrome.tabs.create.throws(new Error('Network error'));
-      
+
       expect(() => {
         chrome.tabs.create({ url: 'https://example.com', active: true });
       }).toThrow('Network error');
@@ -290,10 +290,10 @@ describe('Popup Script', () => {
     test('should display info messages correctly', () => {
       const message = 'Test info message';
       const type = 'info';
-      
+
       // Simulate showMessage function
       messageArea.innerHTML = `<div class="${type}">${escapeHtml(message)}</div>`;
-      
+
       expect(messageArea.innerHTML).toContain('class="info"');
       expect(messageArea.innerHTML).toContain(message);
     });
@@ -301,19 +301,19 @@ describe('Popup Script', () => {
     test('should display error messages correctly', () => {
       const message = 'Test error message';
       const type = 'error';
-      
+
       messageArea.innerHTML = `<div class="${type}">${escapeHtml(message)}</div>`;
-      
+
       expect(messageArea.innerHTML).toContain('class="error"');
       expect(messageArea.innerHTML).toContain(message);
     });
 
     test('should clear messages', () => {
       messageArea.innerHTML = '<div class="info">Previous message</div>';
-      
+
       // Simulate clearMessages function
       messageArea.innerHTML = '';
-      
+
       expect(messageArea.innerHTML).toBe('');
     });
   });
