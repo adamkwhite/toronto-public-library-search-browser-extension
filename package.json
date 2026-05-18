@@ -14,7 +14,7 @@
     "jest-environment-jsdom": "^30.4.1",
     "eslint": "^10.4.0",
     "@types/chrome": "^0.1.42",
-    "sinon": "^21.1.2",
+    "sinon": "^22.0.0",
     "sinon-chrome": "^3.0.1"
   }
 }
