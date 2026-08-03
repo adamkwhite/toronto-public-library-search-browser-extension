@@ -19,6 +19,13 @@ jobs:
       - name: Merge patch and minor updates
         if: steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor'
         run: |
+          # Concurrent Dependabot PRs race: whichever merges first invalidates the
+          # others' base SHA ("Base branch was modified"). Retry picks up the new SHA.
+          for attempt in 1 2 3; do
+            gh pr merge --squash "$PR_URL" && exit 0
+            echo "Merge attempt $attempt failed, retrying in 15s..."
+            sleep 15
+          done
           gh pr merge --squash "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
