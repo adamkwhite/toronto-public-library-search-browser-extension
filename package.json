@@ -10,10 +10,10 @@
     "lint:fix": "eslint *.js tests/**/*.js --fix"
   },
   "devDependencies": {
-    "jest": "^30.4.2",
-    "jest-environment-jsdom": "^30.4.1",
+    "jest": "^30.5.0",
+    "jest-environment-jsdom": "^30.5.0",
     "eslint": "^10.8.1",
-    "@types/chrome": "^0.2.6",
+    "@types/chrome": "^0.2.7",
     "sinon": "^22.1.0",
     "sinon-chrome": "^3.0.1"
   }
