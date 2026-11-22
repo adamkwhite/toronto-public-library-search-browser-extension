@@ -6,14 +6,16 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint *.js tests/**/*.js",
-    "lint:fix": "eslint *.js tests/**/*.js --fix"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/chrome": "^0.3.7",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
-    "eslint": "^10.14.0",
-    "@types/chrome": "^0.3.7",
     "sinon": "^22.1.0",
     "sinon-chrome": "^3.0.1"
   },

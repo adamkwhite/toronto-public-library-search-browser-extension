@@ -1,10 +1,10 @@
 // Test setup file
 // Configures global mocks and test environment
 
-const chrome = require("sinon-chrome");
+const sinonChrome = require("sinon-chrome");
 
 // Mock Chrome APIs globally
-global.chrome = chrome;
+global.chrome = sinonChrome;
 
 // In a jsdom environment, `global.window` and `global.document` cannot
 // be replaced wholesale — assignments to `global.window = {...}` are
