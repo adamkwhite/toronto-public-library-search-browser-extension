@@ -1,8 +1,8 @@
 // Hybrid test setup - improved Chrome API mocking
-const chrome = require("sinon-chrome");
+const sinonChrome = require("sinon-chrome");
 
 // Enhanced Chrome API setup
-global.chrome = chrome;
+global.chrome = sinonChrome;
 
 // In a jsdom environment, `global.window` and `global.document` are
 // non-replaceable proxies into the jsdom Window — assigning a plain

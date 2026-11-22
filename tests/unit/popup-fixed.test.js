@@ -1,417 +1,164 @@
-// Fixed popup functionality tests
-// Tests popup UI interactions and Chrome API integration
-
+// Popup: renders the real popup.html markup and runs the real popup.js against it.
 require("../setup-hybrid");
 
-describe("Popup Functionality (Fixed)", () => {
-  let mockDOMElements, processSearchText, validateSearchText;
+const fs = require("fs");
+const path = require("path");
 
-  beforeEach(() => {
-    setupChromeApiMocks();
+const POPUP_BODY = fs
+  .readFileSync(path.join(__dirname, "../../popup.html"), "utf8")
+  .match(/<body>([\s\S]*)<\/body>/)[1];
+const SEARCH = "https://tpl.bibliocommons.com/v2/search?query=";
 
-    // Mock DOM elements that popup.js would interact with
-    mockDOMElements = {
-      searchInput: {
-        value: "",
-        addEventListener: jest.fn(),
-        focus: jest.fn(),
-      },
-      searchButton: {
-        addEventListener: jest.fn(),
-        disabled: false,
-        click: jest.fn(),
-      },
-      selectedTextButton: {
-        addEventListener: jest.fn(),
-        disabled: true,
-        textContent: "Search Selected Text",
-      },
-      messageArea: {
-        innerHTML: "",
-      },
-    };
+// popup.js does all its work in a DOMContentLoaded handler. Capture that handler and call it
+// directly, so handlers from earlier tests don't pile up on the shared jsdom document.
+function openPopup({ tabs = [{ id: 1 }], response, lastError } = {}) {
+  setupChromeApiMocks();
+  chrome.tabs.query.callsArgWith(1, tabs);
+  chrome.tabs.sendMessage.callsArgWith(2, response);
+  chrome.runtime.lastError = lastError;
+  document.body.innerHTML = POPUP_BODY;
 
-    // Mock document.getElementById
-    document.getElementById = jest.fn((id) => mockDOMElements[id]);
+  const addListener = jest.spyOn(document, "addEventListener");
+  jest.isolateModules(() => require("../../popup.js"));
+  const init = addListener.mock.calls.find(([type]) => type === "DOMContentLoaded")[1];
+  addListener.mockRestore();
+  init();
+}
 
-    // Define popup functions
-    processSearchText = function (text) {
-      if (text === null || text === undefined) {
-        throw new Error("Invalid search text");
-      }
+const $ = (id) => document.getElementById(id);
+const message = () => $("messageArea").textContent;
+const openedUrl = () => chrome.tabs.create.getCall(0).args[0].url;
 
-      if (typeof text !== "string") {
-        throw new Error("Invalid search text");
-      }
+describe("Popup", () => {
+  afterEach(() => {
+    delete chrome.runtime.lastError;
+  });
 
-      let processed = text.replace(/\s+/g, " ").trim();
+  describe("on open", () => {
+    test("offers the page selection, truncated", () => {
+      openPopup({ response: { success: true, text: "A Very Long Book Title Indeed" } });
 
-      if (processed.length === 0) {
-        throw new Error("Search text is empty after processing");
-      }
+      expect($("selectedTextButton").disabled).toBe(false);
+      expect($("selectedTextButton").textContent).toBe('Search: "A Very Long Book ..."');
+    });
 
-      if (isISBN(processed)) {
-        processed = processed.replace(/[^0-9X]/gi, "");
-      }
-
-      if (processed.length > 200) {
-        processed = processed.substring(0, 200).trim();
-      }
-
-      return processed;
-    };
-
-    validateSearchText = function (text) {
-      if (!text || typeof text !== "string") {
-        return { valid: false, error: "No text selected" };
-      }
-
-      const trimmed = text.trim();
-
-      if (trimmed.length === 0) {
-        return { valid: false, error: "Selected text is empty" };
-      }
-
-      if (trimmed.length > 500) {
-        return {
-          valid: true,
-          text: trimmed.substring(0, 500).trim(),
+    test("reports a detected ISBN and any warning", () => {
+      openPopup({
+        response: {
+          success: true,
+          text: "978-0-123-45678-6",
+          isbn: { isISBN: true, type: "ISBN-13", cleaned: "9780123456786" },
           warning: "Text was truncated to 500 characters",
-        };
-      }
+        },
+      });
 
-      return { valid: true, text: trimmed };
-    };
-
-    function isISBN(text) {
-      const cleaned = text.replace(/[^0-9X]/gi, "");
-      return (
-        /^[0-9]{9}[0-9X]$/i.test(cleaned) || /^97[89][0-9]{10}$/i.test(cleaned)
-      );
-    }
-  });
-
-  describe("DOM Element Interaction", () => {
-    test("should initialize DOM elements correctly", () => {
-      // Simulate popup initialization
-      const searchInput = document.getElementById("searchInput");
-      const searchButton = document.getElementById("searchButton");
-      const selectedTextButton = document.getElementById("selectedTextButton");
-      const messageArea = document.getElementById("messageArea");
-
-      expect(searchInput).toBeDefined();
-      expect(searchButton).toBeDefined();
-      expect(selectedTextButton).toBeDefined();
-      expect(messageArea).toBeDefined();
-
-      expect(selectedTextButton.disabled).toBe(true);
+      // The warning replaces the ISBN message; both go through the same message area.
+      expect(message()).toBe("Text was truncated to 500 characters");
     });
 
-    test("should setup event listeners", () => {
-      const searchInput = document.getElementById("searchInput");
-      const searchButton = document.getElementById("searchButton");
+    test("stays disabled when the content script is unreachable", () => {
+      openPopup({ response: undefined, lastError: { message: "No receiver" } });
 
-      // Simulate adding event listeners
-      searchButton.addEventListener("click", jest.fn());
-      searchInput.addEventListener("keypress", jest.fn());
+      expect($("selectedTextButton").disabled).toBe(true);
+    });
 
-      expect(searchButton.addEventListener).toHaveBeenCalledWith(
-        "click",
-        expect.any(Function),
-      );
-      expect(searchInput.addEventListener).toHaveBeenCalledWith(
-        "keypress",
-        expect.any(Function),
-      );
+    test("stays disabled when nothing is selected", () => {
+      openPopup({ response: { success: false, error: "No text selected" } });
+
+      expect($("selectedTextButton").disabled).toBe(true);
+    });
+
+    test("does nothing without an active tab", () => {
+      openPopup({ tabs: [] });
+
+      expect(chrome.tabs.sendMessage.called).toBe(false);
     });
   });
 
-  describe("Search Input Processing", () => {
-    test("should process manual search input", () => {
-      const testInputs = [
-        { input: "The Great Gatsby", expected: "The Great Gatsby" },
-        { input: "  whitespace test  ", expected: "whitespace test" },
-        { input: "978-0-123-45678-6", expected: "9780123456786" },
-      ];
+  describe("manual search", () => {
+    beforeEach(() => openPopup());
 
-      testInputs.forEach(({ input, expected }) => {
-        const result = processSearchText(input);
-        expect(result).toBe(expected);
-      });
-    });
+    test("button click opens an encoded search and closes the popup", () => {
+      $("searchInput").value = "  Author: Smith & Jones ";
+      $("searchButton").click();
 
-    test("should validate search input", () => {
-      expect(validateSearchText("Valid text").valid).toBe(true);
-      expect(validateSearchText("").valid).toBe(false);
-      expect(validateSearchText("   ").valid).toBe(false);
-      expect(validateSearchText(null).valid).toBe(false);
-    });
-
-    test("should handle input errors", () => {
-      expect(() => processSearchText("")).toThrow(
-        "Search text is empty after processing",
-      );
-      expect(() => processSearchText("   ")).toThrow(
-        "Search text is empty after processing",
-      );
-      expect(() => processSearchText(null)).toThrow("Invalid search text");
-      expect(() => processSearchText(undefined)).toThrow("Invalid search text");
-    });
-  });
-
-  describe("Chrome Tab Integration", () => {
-    test("should query active tabs for selected text", () => {
-      const mockTabs = [{ id: 1, active: true, url: "https://example.com" }];
-      chrome.tabs.query.callsArgWith(1, mockTabs);
-
-      // Simulate popup querying for active tab
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        expect(tabs).toEqual(mockTabs);
-        expect(tabs[0].active).toBe(true);
-      });
-
-      expect(chrome.tabs.query.calledOnce).toBe(true);
-      expect(
-        chrome.tabs.query.calledWith({ active: true, currentWindow: true }),
-      ).toBe(true);
-    });
-
-    test("should send messages to content script", () => {
-      const mockResponse = { success: true, text: "Selected text" };
-      chrome.tabs.sendMessage.callsArgWith(2, mockResponse);
-
-      chrome.tabs.sendMessage(1, { action: "getSelectedText" }, (response) => {
-        expect(response.success).toBe(true);
-        expect(response.text).toBe("Selected text");
-      });
-
-      expect(chrome.tabs.sendMessage.calledOnce).toBe(true);
-    });
-
-    test("should create new tabs for searches", () => {
-      const searchText = "Test search";
-      const expectedUrl = `https://tpl.bibliocommons.com/v2/search?query=${encodeURIComponent(searchText)}`;
-
-      chrome.tabs.create({ url: expectedUrl, active: true });
-
-      expect(chrome.tabs.create.calledOnce).toBe(true);
-      expect(
-        chrome.tabs.create.calledWith({ url: expectedUrl, active: true }),
-      ).toBe(true);
-    });
-  });
-
-  describe("Selected Text Detection", () => {
-    test("should enable selected text button when text is available", () => {
-      const mockResponse = {
-        success: true,
-        text: "Selected text from page",
-        isbn: { isISBN: false },
-      };
-
-      chrome.tabs.sendMessage.callsArgWith(2, mockResponse);
-
-      // Simulate checking for selected text
-      chrome.tabs.sendMessage(1, { action: "getSelectedText" }, (response) => {
-        if (response.success) {
-          const selectedTextButton =
-            document.getElementById("selectedTextButton");
-          selectedTextButton.disabled = false;
-          selectedTextButton.textContent = `Search: "${response.text.substring(0, 20)}..."`;
-        }
-      });
-
-      const selectedTextButton = document.getElementById("selectedTextButton");
-      expect(selectedTextButton.disabled).toBe(false);
-      expect(selectedTextButton.textContent).toContain(
-        'Search: "Selected text',
-      );
-    });
-
-    test("should handle ISBN detection in selected text", () => {
-      const mockResponse = {
-        success: true,
-        text: "978-0-123-45678-6",
-        isbn: { isISBN: true, type: "ISBN-13", cleaned: "9780123456786" },
-      };
-
-      chrome.tabs.sendMessage.callsArgWith(2, mockResponse);
-
-      chrome.tabs.sendMessage(1, { action: "getSelectedText" }, (response) => {
-        if (response.success && response.isbn.isISBN) {
-          expect(response.isbn.type).toBe("ISBN-13");
-          expect(response.isbn.cleaned).toBe("9780123456786");
-        }
-      });
-    });
-  });
-
-  describe("Search Execution", () => {
-    test("should perform manual search from input", () => {
-      const searchInput = document.getElementById("searchInput");
-      searchInput.value = "Manual search term";
-
-      // Simulate manual search
-      const searchText = searchInput.value.trim();
-      if (searchText) {
-        const processed = processSearchText(searchText);
-        const url = `https://tpl.bibliocommons.com/v2/search?query=${encodeURIComponent(processed)}`;
-        chrome.tabs.create({ url, active: true });
-      }
-
-      expect(chrome.tabs.create.calledOnce).toBe(true);
-      const createCall = chrome.tabs.create.getCall(0);
-      expect(createCall.args[0].url).toBe(
-        "https://tpl.bibliocommons.com/v2/search?query=Manual%20search%20term",
-      );
-    });
-
-    test("should perform search with selected text", () => {
-      const mockResponse = { success: true, text: "Selected text" };
-      chrome.tabs.sendMessage.callsArgWith(2, mockResponse);
-
-      // Simulate selected text search
-      chrome.tabs.sendMessage(1, { action: "getSelectedText" }, (response) => {
-        if (response.success) {
-          const processed = processSearchText(response.text);
-          const url = `https://tpl.bibliocommons.com/v2/search?query=${encodeURIComponent(processed)}`;
-          chrome.tabs.create({ url, active: true });
-        }
-      });
-
-      expect(chrome.tabs.create.calledOnce).toBe(true);
-    });
-
-    test("should close popup after successful search", () => {
-      const searchText = "Test search";
-      const url = `https://tpl.bibliocommons.com/v2/search?query=${encodeURIComponent(searchText)}`;
-
-      chrome.tabs.create({ url, active: true });
-      window.close();
-
-      expect(chrome.tabs.create.calledOnce).toBe(true);
+      expect(openedUrl()).toBe(`${SEARCH}Author%3A%20Smith%20%26%20Jones`);
       expect(window.close).toHaveBeenCalled();
     });
+
+    test("Enter searches; other keys do not", () => {
+      $("searchInput").value = "978 0 123 45678 6";
+      $("searchInput").dispatchEvent(new KeyboardEvent("keypress", { key: "a" }));
+      expect(chrome.tabs.create.called).toBe(false);
+
+      $("searchInput").dispatchEvent(new KeyboardEvent("keypress", { key: "Enter" }));
+      expect(openedUrl()).toBe(`${SEARCH}9780123456786`);
+    });
+
+    test("empty input shows an error, typing clears it", () => {
+      $("searchButton").click();
+      expect(message()).toBe("Please enter search text");
+
+      $("searchInput").dispatchEvent(new Event("input"));
+      expect(message()).toBe("");
+    });
+
+    test("tab creation failure is shown escaped", () => {
+      chrome.tabs.create.throws(new Error("<b>blocked</b>"));
+      $("searchInput").value = "Dune";
+      $("searchButton").click();
+
+      expect(message()).toBe("Search error: <b>blocked</b>");
+      expect($("messageArea").querySelector("b")).toBeNull();
+    });
   });
 
-  describe("Error Handling", () => {
-    test("should handle empty search input", () => {
-      const searchInput = document.getElementById("searchInput");
-      searchInput.value = "";
+  describe("selected-text search", () => {
+    test("searches the selection", () => {
+      openPopup({ response: { success: true, text: "Dune" } });
+      $("selectedTextButton").disabled = false;
+      $("selectedTextButton").click();
 
-      const searchText = searchInput.value.trim();
-      let errorMessage = "";
+      expect(openedUrl()).toBe(`${SEARCH}Dune`);
+    });
 
-      if (!searchText) {
-        errorMessage = "Please enter search text";
-      }
+    test("whitespace-only selection is rejected", () => {
+      openPopup({ response: { success: true, text: "   " } });
+      $("selectedTextButton").click();
 
-      expect(errorMessage).toBe("Please enter search text");
+      expect(message()).toBe("Search text cannot be empty");
+    });
+
+    test("failed selection lookup shows an error", () => {
+      openPopup({ response: { success: false } });
+      $("selectedTextButton").disabled = false;
+      $("selectedTextButton").click();
+
+      expect(message()).toBe("No text selected or error getting selection");
+    });
+
+    test("does nothing without an active tab", () => {
+      openPopup({ tabs: [] });
+      $("selectedTextButton").disabled = false;
+      $("selectedTextButton").click();
+
       expect(chrome.tabs.create.called).toBe(false);
     });
-
-    test("should handle content script communication errors", () => {
-      chrome.runtime.lastError = { message: "Extension context invalidated" };
-      chrome.tabs.sendMessage.callsArgWith(2, undefined);
-
-      chrome.tabs.sendMessage(1, { action: "getSelectedText" }, (response) => {
-        if (chrome.runtime.lastError) {
-          expect(chrome.runtime.lastError.message).toBe(
-            "Extension context invalidated",
-          );
-        }
-        expect(response).toBeUndefined();
-      });
-    });
-
-    test("should handle tab creation failures", () => {
-      chrome.tabs.create.throws(new Error("Cannot create tab"));
-
-      expect(() => {
-        chrome.tabs.create({
-          url: "https://tpl.bibliocommons.com/v2/search?query=test",
-          active: true,
-        });
-      }).toThrow("Cannot create tab");
-    });
   });
 
-  describe("Message Display", () => {
-    test("should show info messages", () => {
-      const messageArea = document.getElementById("messageArea");
-      const message = "Test info message";
+  describe("processSearchText", () => {
+    beforeEach(() => openPopup());
 
-      messageArea.innerHTML = `<div class="info">${message}</div>`;
-
-      expect(messageArea.innerHTML).toContain('class="info"');
-      expect(messageArea.innerHTML).toContain(message);
+    test.each([null, undefined, 42])("rejects %p", (input) => {
+      expect(() => processSearchText(input)).toThrow("Invalid search text");
     });
 
-    test("should show error messages", () => {
-      const messageArea = document.getElementById("messageArea");
-      const message = "Test error message";
-
-      messageArea.innerHTML = `<div class="error">${message}</div>`;
-
-      expect(messageArea.innerHTML).toContain('class="error"');
-      expect(messageArea.innerHTML).toContain(message);
+    test("rejects whitespace-only text", () => {
+      expect(() => processSearchText(" \t ")).toThrow("Search text is empty after processing");
     });
 
-    test("should clear messages", () => {
-      const messageArea = document.getElementById("messageArea");
-      messageArea.innerHTML = "<div>Previous message</div>";
-
-      messageArea.innerHTML = "";
-
-      expect(messageArea.innerHTML).toBe("");
-    });
-  });
-
-  describe("URL Generation and Security", () => {
-    test("should generate safe URLs for various inputs", () => {
-      const testCases = [
-        { input: "Normal book title", safe: true },
-        { input: '<script>alert("xss")</script>', safe: true },
-        { input: "SQL'; DROP TABLE users; --", safe: true },
-        { input: 'javascript:alert("test")', safe: true },
-      ];
-
-      testCases.forEach(({ input, safe }) => {
-        const processed = processSearchText(input);
-        const encoded = encodeURIComponent(processed);
-        const url = `https://tpl.bibliocommons.com/v2/search?query=${encoded}`;
-
-        expect(
-          url.startsWith("https://tpl.bibliocommons.com/v2/search?query="),
-        ).toBe(true);
-
-        if (safe) {
-          // Should not contain unencoded dangerous content
-          expect(url).not.toContain("<script>");
-          expect(url).not.toContain("javascript:");
-          expect(url).not.toContain("DROP TABLE");
-        }
-      });
-    });
-
-    test("should handle Unicode characters properly", () => {
-      const unicodeInputs = [
-        "Café Literature",
-        "Naïve Approach",
-        "Résumé Writing",
-        "北京 Beijing",
-      ];
-
-      unicodeInputs.forEach((input) => {
-        const processed = processSearchText(input);
-        const encoded = encodeURIComponent(processed);
-        const url = `https://tpl.bibliocommons.com/v2/search?query=${encoded}`;
-
-        expect(url).toMatch(
-          /^https:\/\/tpl\.bibliocommons\.com\/v2\/search\?query=/,
-        );
-        expect(() => new URL(url)).not.toThrow();
-      });
+    test("truncates long text to 200 characters", () => {
+      expect(processSearchText("a".repeat(250))).toHaveLength(200);
     });
   });
 });

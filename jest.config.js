@@ -18,6 +18,8 @@ module.exports = {
     '!tests/**/*.js',
     '!coverage/**/*.js',
     '!jest.config.js',
+    '!eslint.config.js',
+    '!debug-isbn.js', // standalone ISBN scratch script, not shipped in manifest.json
     '!node_modules/**/*.js'
   ],
 

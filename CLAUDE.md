@@ -14,10 +14,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Core**: Vanilla JavaScript (ES6+)
 - **APIs**: Chrome Extension APIs (Manifest V3)
-- **Test Framework**: Jest with comprehensive unit and integration tests
+- **Test Framework**: Jest (jsdom) with sinon-chrome for the extension APIs
 - **Build Tools**: npm for package management
-- **Linting**: ESLint with custom configuration
-- **CI/CD**: GitHub Actions (Dependabot auto-merge for patch/minor updates)
+- **Linting**: ESLint flat config (`eslint.config.js`)
+- **CI/CD**: GitHub Actions: `ci.yml` (lint + tests with coverage gate), Dependabot auto-merge for patch/minor updates
 - **Version Control**: Git with feature branch workflow
 
 ## Key Features
@@ -40,7 +40,7 @@ npm install
 npm test
 
 # Run with coverage
-npm run coverage
+npm run test:coverage
 ```
 
 ## Development Commands
@@ -53,7 +53,7 @@ npm install
 npm test
 
 # Generate coverage report
-npm run coverage
+npm run test:coverage
 
 # Build extension (if applicable)
 npm run build
@@ -64,9 +64,9 @@ npm run lint
 
 ## Testing
 
-- **Framework**: Jest for unit and integration testing
+- **Framework**: Jest unit tests against the shipped scripts
 - **Coverage**: Comprehensive test coverage reporting available
-- **Strategy**: Both unit and integration tests included
+- **Strategy**: Tests load the shipped scripts and drive their Chrome listeners; never copy source into tests
 - **Best Practice**: Test in both Chrome and Firefox when possible for extension compatibility
 
 ## Deployment
@@ -83,16 +83,17 @@ npm run lint
 ```
 toronto-public-library-search-browser-extension/
 ├── .github/workflows/        # GitHub Actions workflows
+│   ├── ci.yml                # Lint + jest coverage (80% gate)
 │   └── dependabot-auto-merge.yml  # Auto-merges patch/minor Dependabot PRs
 ├── icons/                    # Extension icons (16x16 to 128x128)
-├── tests/                    # Jest unit and integration tests
+├── tests/                    # Jest tests; load the real source files (see tests/README.md)
 ├── coverage/                 # Test coverage reports
 ├── manifest.json             # Extension configuration (Manifest V3)
 ├── background.js             # Service worker for context menu
 ├── content.js                # Content script for page interaction
 ├── popup.html/popup.js       # Extension popup interface
 ├── debug-isbn.js             # ISBN validation debugging utility
-├── .eslintrc.js              # ESLint configuration
+├── eslint.config.js          # ESLint flat configuration
 ├── jest.config.js            # Jest test configuration
 └── CLAUDE.md                 # This file
 ```

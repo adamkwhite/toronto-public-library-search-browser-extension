@@ -1,7 +1,7 @@
 // Popup script for TPL Search extension
 // Handles popup UI interactions and manual searches
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("searchInput");
   const searchButton = document.getElementById("searchButton");
   const selectedTextButton = document.getElementById("selectedTextButton");
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Event listeners
   searchButton.addEventListener("click", handleManualSearch);
   selectedTextButton.addEventListener("click", handleSelectedTextSearch);
-  searchInput.addEventListener("keypress", function (e) {
+  searchInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
       handleManualSearch();
     }
@@ -25,12 +25,12 @@ document.addEventListener("DOMContentLoaded", function () {
    * Check if there's selected text on the current page
    */
   function checkSelectedText() {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]) {
         chrome.tabs.sendMessage(
           tabs[0].id,
           { action: "getSelectedText" },
-          function (response) {
+          (response) => {
             if (chrome.runtime.lastError) {
               // Content script might not be loaded yet, ignore error
               return;
@@ -75,12 +75,12 @@ document.addEventListener("DOMContentLoaded", function () {
    * Handle search using selected text
    */
   function handleSelectedTextSearch() {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]) {
         chrome.tabs.sendMessage(
           tabs[0].id,
           { action: "getSelectedText" },
-          function (response) {
+          (response) => {
             if (response && response.success) {
               performSearch(response.text);
             } else {
