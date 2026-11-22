@@ -16,5 +16,8 @@
     "@types/chrome": "^0.3.7",
     "sinon": "^22.1.0",
     "sinon-chrome": "^3.0.1"
+  },
+  "overrides": {
+    "minimatch": "^11.0.1"
   }
 }
